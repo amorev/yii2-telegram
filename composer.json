@@ -1,0 +1,21 @@
+{
+    "name": "zvinger/yii2-telegram",
+    "description": "Integrate telegram for your user accounts",
+    "type": "yii2-extension",
+    "keywords": ["yii2","extension"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Anton Morev",
+            "email": "shikto@mail.ru"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Zvinger\\Telegram\\": ""
+        }
+    }
+}
