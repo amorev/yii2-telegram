@@ -12,7 +12,7 @@ use Bymorev\helpers\traits\connections\UserConnectedTrait;
 use Zvinger\Telegram\components\TelegramComponent;
 use Zvinger\Telegram\exceptions\connection\NotConnectionForUserException;
 use Zvinger\Telegram\exceptions\connection\TelegramEmptyUserIdException;
-use Zvinger\Telegram\handlers\message\TelegramMessageHandler;
+use Zvinger\Telegram\exceptions\connection\TelegramWrongConfirmCodeException;
 use Zvinger\Telegram\handlers\user_connection\models\UserInfoGetResult;
 use Zvinger\Telegram\handlers\user_connection\models\UserInfoSetData;
 use Zvinger\Telegram\models\connection\user\TelegramUserIdConnection;
@@ -54,12 +54,14 @@ class UserConnectionInfoHandler
         $object = $this->getTelegramConnectionObject();
         if (empty($object)) {
             $object = $this->createTelegramConnectionObject($data->telegram_id);
+            $this->sendConfirmationCode($object);
         } else {
             if ($object->status == $object::STATUS_PENDING) {
                 $this->sendConfirmationCode($object);
             } elseif ($object->telegram_id != $data->telegram_id) {
                 $this->deleteCurrentTelegramConnection();
                 $object = $this->createTelegramConnectionObject($data->telegram_id);
+                $this->sendConfirmationCode($object);
             }
         }
 
@@ -109,7 +111,7 @@ class UserConnectionInfoHandler
     {
         $message = 'Код подтверждения: ' . $connectionObject->confirm_code;
 
-        return (new TelegramMessageHandler($this->_telegram_component, $connectionObject->telegram_id, $message))->foreground()->send();
+        return $this->_telegram_component->createMessageHandler($connectionObject->telegram_id, $message)->foreground()->send();
     }
 
     public function confirmTelegramId(UserInfoSetData $data)
@@ -123,6 +125,8 @@ class UserConnectionInfoHandler
         if ($result) {
             $object->status = $object::STATUS_ACTIVE;
             $object->save();
+        } else {
+            throw new TelegramWrongConfirmCodeException();
         }
 
         return \Yii::createObject([

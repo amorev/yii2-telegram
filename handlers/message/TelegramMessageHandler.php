@@ -32,7 +32,7 @@ class TelegramMessageHandler
      * @param $_receiver_chat_id
      * @param $_text
      */
-    public function __construct(TelegramComponent $telegramComponent, $_receiver_chat_id, $_text)
+    public function __construct(TelegramComponent $telegramComponent, $_receiver_chat_id = NULL, $_text = NULL)
     {
         $this->_text = $_text;
         $this->_receiver_chat_id = $_receiver_chat_id;
@@ -41,7 +41,7 @@ class TelegramMessageHandler
 
     /**
      * @param mixed $text
-     * @return TelegramMessageHandler
+     * @return $this
      */
     public function setText($text)
     {
@@ -52,7 +52,7 @@ class TelegramMessageHandler
 
     /**
      * @param mixed $_receiver_chat_id
-     * @return TelegramMessageHandler
+     * @return $this
      */
     public function setReceiverChatId($_receiver_chat_id)
     {

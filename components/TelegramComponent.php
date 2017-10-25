@@ -11,6 +11,7 @@ namespace Zvinger\Telegram\components;
 use Telegram\Bot\Api;
 use yii\base\Object;
 use Zvinger\Telegram\exceptions\component\NoTokenProvidedException;
+use Zvinger\Telegram\handlers\message\TelegramMessageHandler;
 use Zvinger\Telegram\handlers\user_connection\UserConnectionInfoHandler;
 
 class TelegramComponent extends Object
@@ -34,6 +35,16 @@ class TelegramComponent extends Object
         }
 
         return $this->_user_info_handler;
+    }
+
+    /**
+     * @param $telegramId
+     * @param $message
+     * @return TelegramMessageHandler
+     */
+    public function createMessageHandler($telegramId = NULL, $message = NULL)
+    {
+        return new TelegramMessageHandler($this, $telegramId, $message);
     }
 
     /**

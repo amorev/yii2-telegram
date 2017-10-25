@@ -5,6 +5,7 @@ namespace Zvinger\Telegram\models\connection\user;
 use common\models\User;
 use Yii;
 use yii\behaviors\TimestampBehavior;
+use Zvinger\Telegram\components\TelegramComponent;
 use Zvinger\Telegram\models\connection\user\behaviors\TelegramConnectionBehavior;
 
 /**
@@ -25,6 +26,11 @@ class TelegramUserIdConnection extends \yii\db\ActiveRecord
     const STATUS_ACTIVE = 1;
     const STATUS_PENDING = 2;
     const STATUS_DELETED = 3;
+
+    /**
+     * @var TelegramComponent
+     */
+    private $_telegram_component;
 
     /**
      * @inheritdoc
@@ -100,5 +106,16 @@ class TelegramUserIdConnection extends \yii\db\ActiveRecord
     public static function find()
     {
         return new TelegramUserIdConnectionQuery(get_called_class());
+    }
+
+    /**
+     * @param TelegramComponent $telegram_component
+     * @return TelegramUserIdConnection
+     */
+    public function setTelegramComponent(TelegramComponent $telegram_component)
+    {
+        $this->_telegram_component = $telegram_component;
+
+        return $this;
     }
 }
