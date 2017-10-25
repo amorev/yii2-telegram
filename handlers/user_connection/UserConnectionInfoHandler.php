@@ -58,7 +58,7 @@ class UserConnectionInfoHandler
             $object = $this->createTelegramConnectionObject($data->telegram_id);
             $this->sendConfirmationCode($object);
         } else {
-            if ($object->status == $object::STATUS_PENDING) {
+            if ($object->status == $object::STATUS_PENDING && $object->telegram_id == $data->telegram_id) {
                 $this->sendConfirmationCode($object);
             } elseif ($object->telegram_id != $data->telegram_id) {
                 $this->deleteCurrentTelegramConnection();
@@ -112,7 +112,7 @@ class UserConnectionInfoHandler
     public function sendConfirmationCode(TelegramUserIdConnection $connectionObject)
     {
         $message = 'Код подтверждения: ' . $connectionObject->confirm_code;
-
+        $result = NULL;
         try {
             $result = $this->_telegram_component->createMessageHandler($connectionObject->telegram_id, $message)->foreground()->send();
         } catch (TelegramSDKException $e) {
