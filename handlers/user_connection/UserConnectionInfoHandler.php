@@ -9,7 +9,9 @@
 namespace Zvinger\Telegram\handlers\user_connection;
 
 use Bymorev\helpers\traits\connections\UserConnectedTrait;
+use Telegram\Bot\Exceptions\TelegramSDKException;
 use Zvinger\Telegram\components\TelegramComponent;
+use Zvinger\Telegram\exceptions\api\TelegramWrongChatException;
 use Zvinger\Telegram\exceptions\connection\NotConnectionForUserException;
 use Zvinger\Telegram\exceptions\connection\TelegramEmptyUserIdException;
 use Zvinger\Telegram\exceptions\connection\TelegramWrongConfirmCodeException;
@@ -111,7 +113,15 @@ class UserConnectionInfoHandler
     {
         $message = 'Код подтверждения: ' . $connectionObject->confirm_code;
 
-        return $this->_telegram_component->createMessageHandler($connectionObject->telegram_id, $message)->foreground()->send();
+        try {
+            $result = $this->_telegram_component->createMessageHandler($connectionObject->telegram_id, $message)->foreground()->send();
+        } catch (TelegramSDKException $e) {
+            if ($e->getCode() == 400) {
+                throw new TelegramWrongChatException();
+            }
+        }
+
+        return $result;
     }
 
     public function confirmTelegramId(UserInfoSetData $data)
