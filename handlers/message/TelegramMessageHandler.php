@@ -15,6 +15,7 @@ use Zvinger\Telegram\exceptions\message\EmptyMessageTextException;
 class TelegramMessageHandler
 {
     const PARSE_HTML = 'HTML';
+    const PARSE_MARKDOWN = 'Markdown';
 
     private $_text;
 
@@ -88,6 +89,17 @@ class TelegramMessageHandler
     public function background()
     {
         $this->_background = TRUE;
+
+        return $this;
+    }
+
+    /**
+     * @param string $parse_mode
+     * @return TelegramMessageHandler
+     */
+    public function setParseMode(string $parse_mode): TelegramMessageHandler
+    {
+        $this->_parse_mode = $parse_mode;
 
         return $this;
     }
