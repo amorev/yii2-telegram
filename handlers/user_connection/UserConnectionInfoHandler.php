@@ -9,6 +9,7 @@
 namespace Zvinger\Telegram\handlers\user_connection;
 
 use Bymorev\helpers\traits\connections\UserConnectedTrait;
+use Zvinger\Telegram\components\TelegramComponent;
 use Zvinger\Telegram\exceptions\connection\NotConnectionForUserException;
 use Zvinger\Telegram\exceptions\connection\TelegramEmptyUserIdException;
 use Zvinger\Telegram\handlers\message\TelegramMessageHandler;
@@ -19,6 +20,18 @@ use Zvinger\Telegram\models\connection\user\TelegramUserIdConnection;
 class UserConnectionInfoHandler
 {
     use UserConnectedTrait;
+
+    private $_telegram_component;
+
+    /**
+     * UserConnectionInfoHandler constructor.
+     * @param $_telegram_component TelegramComponent
+     */
+    public function __construct(TelegramComponent $_telegram_component)
+    {
+        $this->_telegram_component = $_telegram_component;
+    }
+
 
     public function getTelegramInfo()
     {
@@ -43,7 +56,7 @@ class UserConnectionInfoHandler
             $object = $this->createTelegramConnectionObject($data->telegram_id);
         } else {
             if ($object->status == $object::STATUS_PENDING) {
-                static::sendConfirmationCode($object);
+                $this->sendConfirmationCode($object);
             } elseif ($object->telegram_id != $data->telegram_id) {
                 $this->deleteCurrentTelegramConnection();
                 $object = $this->createTelegramConnectionObject($data->telegram_id);
@@ -92,11 +105,11 @@ class UserConnectionInfoHandler
         $connection->save();
     }
 
-    public static function sendConfirmationCode(TelegramUserIdConnection $connectionObject)
+    public function sendConfirmationCode(TelegramUserIdConnection $connectionObject)
     {
         $message = 'Код подтверждения: ' . $connectionObject->confirm_code;
 
-        return (new TelegramMessageHandler($connectionObject->telegram_id, $message))->foreground()->send();
+        return (new TelegramMessageHandler($this->_telegram_component, $connectionObject->telegram_id, $message))->foreground()->send();
     }
 
     public function confirmTelegramId(UserInfoSetData $data)
@@ -135,6 +148,4 @@ class UserConnectionInfoHandler
 
         return $object;
     }
-
-
 }

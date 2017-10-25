@@ -30,7 +30,7 @@ class TelegramComponent extends Object
     public function getUserConnectionInfoHandler()
     {
         if (empty($this->_user_info_handler)) {
-            $this->_user_info_handler = new UserConnectionInfoHandler();
+            $this->_user_info_handler = new UserConnectionInfoHandler($this);
         }
 
         return $this->_user_info_handler;
@@ -59,5 +59,4 @@ class TelegramComponent extends Object
     {
         $this->_telegram_bot_token = $telegram_bot_token;
     }
-
 }
