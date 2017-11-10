@@ -47,6 +47,7 @@ class UserConnectionInfoHandler
             'telegramId'  => $object->telegram_id,
             'userId'      => $this->getUserId(),
             'confirmCode' => $object->confirm_code,
+            'status'      => $object->status,
         ]);
     }
 
