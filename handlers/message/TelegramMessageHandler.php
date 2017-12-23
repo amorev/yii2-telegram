@@ -8,6 +8,7 @@
 
 namespace Zvinger\Telegram\handlers\message;
 
+use yii\helpers\ArrayHelper;
 use Zvinger\Telegram\components\TelegramComponent;
 use Zvinger\Telegram\exceptions\message\EmptyChatIdException;
 use Zvinger\Telegram\exceptions\message\EmptyMessageTextException;
@@ -62,6 +63,12 @@ class TelegramMessageHandler
         return $this;
     }
 
+    /**
+     * @return \Telegram\Bot\Objects\Message
+     * @throws EmptyChatIdException
+     * @throws EmptyMessageTextException
+     * @throws \Zvinger\Telegram\exceptions\component\NoTokenProvidedException
+     */
     public function send()
     {
         if (empty($this->_receiver_chat_id)) {
@@ -72,8 +79,15 @@ class TelegramMessageHandler
         }
 
         //  todo сделать получение результата отправки сообщения у фоновых отправок сообщений
+
+        $receiver_chat_id = $this->_receiver_chat_id;
+        $id = ArrayHelper::getValue($this->_telegram_component->namedContacts, $receiver_chat_id, $receiver_chat_id);
+        if (empty($id)) {
+            $id = $receiver_chat_id;
+        }
+
         return $this->_telegram_component->getTelegramClient()->sendMessage([
-            'chat_id'    => $this->_receiver_chat_id,
+            'chat_id'    => $id,
             'text'       => $this->_text,
             'parse_mode' => $this->_parse_mode,
         ]);

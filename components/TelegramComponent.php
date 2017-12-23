@@ -10,9 +10,9 @@ namespace Zvinger\Telegram\components;
 
 use Telegram\Bot\Api;
 use yii\base\Application;
+use yii\base\BaseObject;
 use yii\base\BootstrapInterface;
 use yii\base\InvalidConfigException;
-use yii\base\Object;
 use yii\helpers\Inflector;
 use Zvinger\Telegram\console\command\TelegramConsoleController;
 use Zvinger\Telegram\exceptions\component\NoTokenProvidedException;
@@ -22,7 +22,7 @@ use Zvinger\Telegram\handlers\TelegramKeyStorage;
 use Zvinger\Telegram\handlers\user_connection\UserConnectionInfoHandler;
 use Zvinger\Telegram\interfaces\TelegramKeyStorageInterface;
 
-class TelegramComponent extends Object implements BootstrapInterface
+class TelegramComponent extends BaseObject implements BootstrapInterface
 {
     private $_user_info_handler = NULL;
 
@@ -40,6 +40,8 @@ class TelegramComponent extends Object implements BootstrapInterface
     public $keyStorageLastUpdateIdKey = 'Telegram.LongPolling.LastUpdateId';
 
     public $telegramBotTitle;
+
+    public $namedContacts = [];
 
 
     /**
@@ -59,7 +61,7 @@ class TelegramComponent extends Object implements BootstrapInterface
      * @param $message
      * @return TelegramMessageHandler
      */
-    public function createMessageHandler($telegramId = NULL, $message = NULL)
+    public function     createMessageHandler($telegramId = NULL, $message = NULL)
     {
         return new TelegramMessageHandler($this, $telegramId, $message);
     }

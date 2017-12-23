@@ -19,10 +19,14 @@ class TelegramConsoleController extends Controller
      */
     private $_telegramComponent;
 
+    /**
+     * @param int $timeout
+     * @throws \Zvinger\Telegram\exceptions\component\NoTokenProvidedException
+     */
     public function actionLongPolling($timeout = 30)
     {
         $telegramComponent = $this->getTelegramComponent();
-        $telegramClient = \Yii::$app->telegramComponent->getTelegramClient();
+        $telegramClient = $this->getTelegramComponent()->getTelegramClient();
         Console::output("Started long polling listener");
         while (TRUE) {
             $telegramLastUpdate = $telegramComponent->getLastUpdateId();
@@ -37,6 +41,16 @@ class TelegramConsoleController extends Controller
                 $telegramComponent->setLastUpdateId($update->getUpdateId());
             }
         }
+    }
+
+    /**
+     * @throws \Zvinger\Telegram\exceptions\message\EmptyChatIdException
+     * @throws \Zvinger\Telegram\exceptions\message\EmptyMessageTextException
+     * @throws \Zvinger\Telegram\exceptions\component\NoTokenProvidedException
+     */
+    public function actionMessage($receiver, $message)
+    {
+        $this->getTelegramComponent()->createMessageHandler($receiver, $message)->send();
     }
 
     /**
