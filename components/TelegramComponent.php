@@ -91,6 +91,7 @@ class TelegramComponent extends Object implements BootstrapInterface
     /**
      * Bootstrap method to be called during application bootstrap stage.
      * @param Application $app the application currently running
+     * @throws InvalidConfigException
      */
     public function bootstrap($app)
     {
