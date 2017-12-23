@@ -61,7 +61,7 @@ class TelegramComponent extends BaseObject implements BootstrapInterface
      * @param $message
      * @return TelegramMessageHandler
      */
-    public function     createMessageHandler($telegramId = NULL, $message = NULL)
+    public function createMessageHandler($telegramId = NULL, $message = NULL)
     {
         return new TelegramMessageHandler($this, $telegramId, $message);
     }
