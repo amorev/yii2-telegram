@@ -67,6 +67,19 @@ class TelegramComponent extends BaseObject implements BootstrapInterface
     }
 
     /**
+     * @param $who
+     * @param $message
+     * @return \Telegram\Bot\Objects\Message
+     * @throws NoTokenProvidedException
+     * @throws \Zvinger\Telegram\exceptions\message\EmptyChatIdException
+     * @throws \Zvinger\Telegram\exceptions\message\EmptyMessageTextException
+     */
+    public function message($who, $message)
+    {
+        return $this->createMessageHandler($who, $message)->send();
+    }
+
+    /**
      * @return Api
      * @throws NoTokenProvidedException
      */
