@@ -28,6 +28,8 @@ class TelegramMessageHandler
 
     private $_telegram_component;
 
+    private $_message_id_to_edit;
+
     /**
      * TelegramMessageHandler constructor.
      * @param $telegramComponent
@@ -71,23 +73,45 @@ class TelegramMessageHandler
      */
     public function send()
     {
-        if (empty($this->_receiver_chat_id)) {
-            throw new EmptyChatIdException();
-        }
+
         if (empty($this->_text)) {
             throw new EmptyMessageTextException();
         }
 
         //  todo сделать получение результата отправки сообщения у фоновых отправок сообщений
 
+        if (empty($this->_message_id_to_edit)) {
+            return $this->sendMessage();
+        } else {
+            return $this->editMessageText($this->_message_id_to_edit);
+        }
+    }
+
+    private function getChatId()
+    {
+        if (empty($this->_receiver_chat_id)) {
+            throw new EmptyChatIdException();
+        }
         $receiver_chat_id = $this->_receiver_chat_id;
         $id = ArrayHelper::getValue($this->_telegram_component->namedContacts, $receiver_chat_id, $receiver_chat_id);
         if (empty($id)) {
             $id = $receiver_chat_id;
         }
 
-        return $this->_telegram_component->getTelegramClient()->sendMessage([
-            'chat_id'    => $id,
+        return $id;
+    }
+
+    /**
+     * @param $messageId
+     * @return mixed
+     * @throws EmptyChatIdException
+     * @throws \Zvinger\Telegram\exceptions\component\NoTokenProvidedException
+     */
+    public function editMessageText($messageId)
+    {
+        return $this->_telegram_component->getTelegramClient()->editMessageText([
+            'chat_id'    => $this->getChatId(),
+            'message_id' => $messageId,
             'text'       => $this->_text,
             'parse_mode' => $this->_parse_mode,
         ]);
@@ -116,5 +140,30 @@ class TelegramMessageHandler
         $this->_parse_mode = $parse_mode;
 
         return $this;
+    }
+
+    /**
+     * @param mixed $message_id_to_edit
+     * @return $this
+     */
+    public function setMessageIdToEdit($message_id_to_edit)
+    {
+        $this->_message_id_to_edit = $message_id_to_edit;
+
+        return $this;
+    }
+
+    /**
+     * @return \Telegram\Bot\Objects\Message
+     * @throws EmptyChatIdException
+     * @throws \Zvinger\Telegram\exceptions\component\NoTokenProvidedException
+     */
+    private function sendMessage(): \Telegram\Bot\Objects\Message
+    {
+        return $this->_telegram_component->getTelegramClient()->sendMessage([
+            'chat_id'    => $this->getChatId(),
+            'text'       => $this->_text,
+            'parse_mode' => $this->_parse_mode,
+        ]);
     }
 }

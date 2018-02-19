@@ -18,6 +18,7 @@ use Zvinger\Telegram\exceptions\connection\TelegramWrongConfirmCodeException;
 use Zvinger\Telegram\handlers\user_connection\models\UserInfoGetResult;
 use Zvinger\Telegram\handlers\user_connection\models\UserInfoSetData;
 use Zvinger\Telegram\models\connection\user\TelegramUserIdConnection;
+use Zvinger\Telegram\models\connection\user\TelegramUserIdConnectionQuery;
 
 class UserConnectionInfoHandler
 {
@@ -57,14 +58,22 @@ class UserConnectionInfoHandler
         $object = $this->getTelegramConnectionObject();
         if (empty($object)) {
             $object = $this->createTelegramConnectionObject($data->telegram_id);
-            $this->sendConfirmationCode($object);
+            if ($data->confirm) {
+                $this->sendConfirmationCode($object);
+            }
         } else {
-            if ($object->status == $object::STATUS_PENDING && $object->telegram_id == $data->telegram_id) {
-                $this->sendConfirmationCode($object);
-            } elseif ($object->telegram_id != $data->telegram_id) {
-                $this->deleteCurrentTelegramConnection();
+            if ($data->confirm) {
+                if ($object->status == $object::STATUS_PENDING && $object->telegram_id == $data->telegram_id) {
+                    $this->sendConfirmationCode($object);
+                } elseif ($object->telegram_id != $data->telegram_id) {
+                    $this->deleteCurrentTelegramConnection();
+                    $object = $this->createTelegramConnectionObject($data->telegram_id);
+                    $this->sendConfirmationCode($object);
+                }
+            } else {
                 $object = $this->createTelegramConnectionObject($data->telegram_id);
-                $this->sendConfirmationCode($object);
+                $object->status = $object::STATUS_ACTIVE;
+                $object->save();
             }
         }
 
@@ -88,14 +97,19 @@ class UserConnectionInfoHandler
     /**
      * @param null $telegramId
      * @return TelegramUserIdConnection
+     * @throws TelegramEmptyUserIdException
      */
-    public function getTelegramConnectionObject($telegramId = NULL)
+    public function getTelegramConnectionObject($telegramId = NULL, $useUser = TRUE)
     {
-        $this->checkUser();
+        /** @var TelegramUserIdConnectionQuery $telegramUserIdConnectionQuery */
         $telegramUserIdConnectionQuery = TelegramUserIdConnection::find();
-        $telegramUserIdConnectionQuery
-            ->byUser($this->getUserId())
-            ->notDeleted();
+        if ($useUser) {
+            $this->checkUser();
+            $telegramUserIdConnectionQuery
+                ->byUserId($this->getUserId())
+                ->notDeleted();
+        }
+
         if ($telegramId) {
             $telegramUserIdConnectionQuery->byTelegramId($telegramId);
         }
@@ -157,7 +171,7 @@ class UserConnectionInfoHandler
     {
         $object = new TelegramUserIdConnection();
         $object->user_id = $this->getUserId();
-        $object->telegram_id = $telegram_id;
+        $object->telegram_id = (string)$telegram_id;
         $object->confirm_code = (string)rand(100000, 999999);
         $object->save();
 

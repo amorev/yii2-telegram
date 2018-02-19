@@ -13,4 +13,6 @@ class UserInfoSetData
     public $telegram_id;
 
     public $confirmCode;
+
+    public $confirm = true;
 }

@@ -42,11 +42,6 @@ class TelegramUserIdConnection extends \yii\db\ActiveRecord
             [['user_id', 'created_at', 'updated_at', 'status'], 'integer'],
             [['telegram_id'], 'string', 'max' => 40],
             [['confirm_code'], 'string', 'max' => 6],
-            [['user_id'],
-                'exist',
-                'skipOnError'     => TRUE,
-                'targetClass'     => User::className(),
-                'targetAttribute' => ['user_id' => 'id']],
         ];
     }
 

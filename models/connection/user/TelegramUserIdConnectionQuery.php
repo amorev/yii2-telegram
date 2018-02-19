@@ -34,6 +34,15 @@ class TelegramUserIdConnectionQuery extends \yii\db\ActiveQuery
     }
 
     /**
+     * @param $user_id
+     * @return $this
+     */
+    public function byUserId($user_id)
+    {
+        return $this->byUser($user_id);
+    }
+
+    /**
      * @inheritdoc
      * @return TelegramUserIdConnection[]|array
      */

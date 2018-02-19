@@ -43,6 +43,10 @@ class TelegramComponent extends BaseObject implements BootstrapInterface
 
     public $namedContacts = [];
 
+    public $messageHandlers = [];
+
+    public $telegramApiClient = Api::class;
+
 
     /**
      * @return UserConnectionInfoHandler
@@ -89,7 +93,7 @@ class TelegramComponent extends BaseObject implements BootstrapInterface
             throw new NoTokenProvidedException();
         }
         if (empty($this->_telegram_client)) {
-            $this->_telegram_client = new Api($this->_telegram_bot_token);
+            $this->_telegram_client = new $this->telegramApiClient($this->_telegram_bot_token);
         }
 
         return $this->_telegram_client;
@@ -124,7 +128,7 @@ class TelegramComponent extends BaseObject implements BootstrapInterface
     public function getIncomingMessageHandler()
     {
         if (empty($this->_incoming_message_handler)) {
-            $this->_incoming_message_handler = new IncomingMessageHandler($this);
+            $this->_incoming_message_handler = new IncomingMessageHandler($this, $this->messageHandlers);
         }
 
         return $this->_incoming_message_handler;
