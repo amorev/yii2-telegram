@@ -8,9 +8,12 @@
 
 namespace Zvinger\Telegram\console\command;
 
+use Zvinger\Telegram\command\HelpCommand;
+use app\components\telegram\commands\SaveCoinCommand;
+use app\components\telegram\commands\StartCommand;
+use app\components\telegram\TelegramComponent;
 use yii\console\Controller;
 use yii\helpers\Console;
-use Zvinger\Telegram\components\TelegramComponent;
 
 class TelegramConsoleController extends Controller
 {
@@ -40,6 +43,15 @@ class TelegramConsoleController extends Controller
                 $telegramComponent->getIncomingMessageHandler()->workLongPollingUpdate($update);
                 $telegramComponent->setLastUpdateId($update->getUpdateId());
             }
+        }
+    }
+
+    public function actionHandleCommands()
+    {
+        $api = $this->getTelegramComponent()->getTelegramClient();
+        $api->addCommands($this->getTelegramComponent()->commands);
+        while (TRUE) {
+            $api->commandsHandler(FALSE, 30);
         }
     }
 

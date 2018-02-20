@@ -14,6 +14,7 @@ use yii\base\BaseObject;
 use yii\base\BootstrapInterface;
 use yii\base\InvalidConfigException;
 use yii\helpers\Inflector;
+use Zvinger\Telegram\api\TelegramApiClient;
 use Zvinger\Telegram\console\command\TelegramConsoleController;
 use Zvinger\Telegram\exceptions\component\NoTokenProvidedException;
 use Zvinger\Telegram\handlers\incoming\IncomingMessageHandler;
@@ -27,7 +28,7 @@ class TelegramComponent extends BaseObject implements BootstrapInterface
     private $_user_info_handler = NULL;
 
     /**
-     * @var Api
+     * @var TelegramApiClient
      */
     private $_telegram_client;
 
@@ -45,7 +46,9 @@ class TelegramComponent extends BaseObject implements BootstrapInterface
 
     public $messageHandlers = [];
 
-    public $telegramApiClient = Api::class;
+    public $telegramApiClient = TelegramApiClient::class;
+
+    public $commands;
 
 
     /**
@@ -84,10 +87,10 @@ class TelegramComponent extends BaseObject implements BootstrapInterface
     }
 
     /**
-     * @return Api
+     * @return TelegramApiClient
      * @throws NoTokenProvidedException
      */
-    public function getTelegramClient(): Api
+    public function getTelegramClient()
     {
         if (empty($this->_telegram_bot_token)) {
             throw new NoTokenProvidedException();
@@ -177,5 +180,22 @@ class TelegramComponent extends BaseObject implements BootstrapInterface
         }
 
         return $this->_key_storage;
+    }
+
+    /**
+     * @param $webHook
+     * @throws NoTokenProvidedException
+     */
+    public function handleCommands($webHook)
+    {
+        $api = $this->getTelegramClient();
+        $api->addCommands($this->commands);
+        if (!$webHook) {
+            while (TRUE) {
+                $api->commandsHandler(FALSE, 30);
+            }
+        } else {
+            $api->commandsHandler(TRUE);
+        }
     }
 }

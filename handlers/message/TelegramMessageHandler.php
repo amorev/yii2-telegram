@@ -8,6 +8,7 @@
 
 namespace Zvinger\Telegram\handlers\message;
 
+use Telegram\Bot\Exceptions\TelegramResponseException;
 use yii\helpers\ArrayHelper;
 use Zvinger\Telegram\components\TelegramComponent;
 use Zvinger\Telegram\exceptions\message\EmptyChatIdException;
