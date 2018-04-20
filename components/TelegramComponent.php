@@ -15,6 +15,7 @@ use yii\base\BootstrapInterface;
 use yii\base\InvalidConfigException;
 use yii\helpers\Inflector;
 use Zvinger\Telegram\api\TelegramApiClient;
+use Zvinger\Telegram\api\TelegramApiConnector;
 use Zvinger\Telegram\console\command\TelegramConsoleController;
 use Zvinger\Telegram\exceptions\component\NoTokenProvidedException;
 use Zvinger\Telegram\handlers\incoming\IncomingMessageHandler;
@@ -37,6 +38,10 @@ class TelegramComponent extends BaseObject implements BootstrapInterface
     private $_key_storage_component_name;
 
     private $_key_storage;
+
+    const BASE_PROXY_API = 'http://telegram-proxy.obvu.ru/bot';
+
+    private $_bot_api_url;
 
     public $keyStorageLastUpdateIdKey = 'Telegram.LongPolling.LastUpdateId';
 
@@ -97,6 +102,9 @@ class TelegramComponent extends BaseObject implements BootstrapInterface
         }
         if (empty($this->_telegram_client)) {
             $this->_telegram_client = new $this->telegramApiClient($this->_telegram_bot_token);
+            if ($this->_telegram_client instanceof TelegramApiClient) {
+                $this->_telegram_client->setClientBotApiUrl($this->getBotApiUrl());
+            }
         }
 
         return $this->_telegram_client;
@@ -197,5 +205,22 @@ class TelegramComponent extends BaseObject implements BootstrapInterface
         } else {
             $api->commandsHandler(TRUE);
         }
+    }
+
+    /**
+     * @param mixed $bot_api_url
+     */
+    public function setBotApiUrl($bot_api_url): void
+    {
+        $this->_bot_api_url = $bot_api_url;
+    }
+
+    private function getBotApiUrl()
+    {
+        if (empty($this->_bot_api_url)) {
+            $this->_bot_api_url = static::BASE_PROXY_API;
+        }
+
+        return $this->_bot_api_url;
     }
 }

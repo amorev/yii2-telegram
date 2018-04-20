@@ -13,6 +13,19 @@ use Telegram\Bot\Objects\Message;
 
 class TelegramApiClient extends Api
 {
+    public function __construct(?string $token = NULL, bool $async = FALSE, $http_client_handler = NULL)
+    {
+        parent::__construct($token, $async, $http_client_handler);
+        $currentClient = $this->client;
+        $handler = $currentClient->getHttpClientHandler();
+        $this->client = new TelegramApiConnector($handler);
+    }
+
+    public function setClientBotApiUrl($url)
+    {
+        $this->client->setBaseBotUrl($url);
+    }
+
     public function editMessageText($data)
     {
         $response = $this->post('editMessageText', $data);
@@ -30,7 +43,7 @@ class TelegramApiClient extends Api
         }
 
         $updates = $this->getUpdates([
-            'timeout' => $timeout
+            'timeout' => $timeout,
         ]);
         $highestId = -1;
 
@@ -49,6 +62,4 @@ class TelegramApiClient extends Api
 
         return $updates;
     }
-
-
 }
