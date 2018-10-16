@@ -12,6 +12,7 @@ use Telegram\Bot\Api;
 use yii\base\Application;
 use yii\base\BaseObject;
 use yii\base\BootstrapInterface;
+use yii\base\Component;
 use yii\base\InvalidConfigException;
 use yii\helpers\Inflector;
 use Zvinger\Telegram\api\TelegramApiClient;
@@ -24,9 +25,10 @@ use Zvinger\Telegram\handlers\TelegramKeyStorage;
 use Zvinger\Telegram\handlers\user_connection\UserConnectionInfoHandler;
 use Zvinger\Telegram\interfaces\TelegramKeyStorageInterface;
 
-class TelegramComponent extends BaseObject implements BootstrapInterface
+class TelegramComponent extends Component implements BootstrapInterface
 {
-    private $_user_info_handler = NULL;
+    const EVENT_CALLBACK_QUERY = 'EVENT_CALLBACK_QUERY';
+    private $_user_info_handler = null;
 
     /**
      * @var TelegramApiClient
@@ -73,7 +75,7 @@ class TelegramComponent extends BaseObject implements BootstrapInterface
      * @param $message
      * @return TelegramMessageHandler
      */
-    public function createMessageHandler($telegramId = NULL, $message = NULL)
+    public function createMessageHandler($telegramId = null, $message = null)
     {
         return new TelegramMessageHandler($this, $telegramId, $message);
     }
@@ -161,7 +163,7 @@ class TelegramComponent extends BaseObject implements BootstrapInterface
      */
     protected function getCommandId()
     {
-        foreach (\Yii::$app->getComponents(FALSE) as $id => $component) {
+        foreach (\Yii::$app->getComponents(false) as $id => $component) {
             if ($component === $this) {
                 return Inflector::camel2id($id);
             }
@@ -199,11 +201,11 @@ class TelegramComponent extends BaseObject implements BootstrapInterface
         $api = $this->getTelegramClient();
         $api->addCommands($this->commands);
         if (!$webHook) {
-            while (TRUE) {
-                $api->commandsHandler(FALSE, 30);
+            while (true) {
+                $api->commandsHandler(false, 30);
             }
         } else {
-            $api->commandsHandler(TRUE);
+            $api->commandsHandler(true);
         }
     }
 

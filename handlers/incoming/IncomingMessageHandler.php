@@ -10,9 +10,11 @@ namespace Zvinger\Telegram\handlers\incoming;
 
 use Telegram\Bot\Objects\Update;
 use yii\base\BaseObject;
+use yii\base\Event;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
 use Zvinger\Telegram\components\TelegramComponent;
+use Zvinger\Telegram\handlers\events\TelegramCallbackEvent;
 use Zvinger\Telegram\handlers\message\TelegramMessageHandler;
 
 class IncomingMessageHandler extends BaseObject
@@ -54,21 +56,22 @@ class IncomingMessageHandler extends BaseObject
         if (empty($message)) {
             $message = $update->get('edited_message');
         }
-        if (empty($message)) {
-            return NULL;
-        }
-        $channelPost = $update->get('channel_post');
-        if ($channelPost) {
-            return FALSE;
-        }
         $callbackQuery = $update->get('callback_query');
         if ($callbackQuery) {
             return $this->handleCallBack($callbackQuery);
         }
+        if (empty($message)) {
+            return null;
+        }
+        $channelPost = $update->get('channel_post');
+        if ($channelPost) {
+            return false;
+        }
+
 
         $text = $message->getText();
         $explode = explode(' ', $text);
-        $command = isset($explode[0]) ? $explode[0] : NULL;
+        $command = isset($explode[0]) ? $explode[0] : null;
         if (!empty($this->methods[$command])) {
             $method = $this->methods[$command];
             if (method_exists($this, $method)) {
@@ -87,7 +90,7 @@ class IncomingMessageHandler extends BaseObject
             return $handler->handle($handlingData);
         }
 
-        return FALSE;
+        return false;
     }
 
     /**
@@ -106,7 +109,7 @@ class IncomingMessageHandler extends BaseObject
             }
         }
 
-        return NULL;
+        return null;
     }
 
     protected function sendIdMessageReply(Update $update)
@@ -127,8 +130,12 @@ class IncomingMessageHandler extends BaseObject
     public function handleCallBack($callback_query)
     {
         $data = Json::decode($callback_query->get('data'));
+        $event = new TelegramCallbackEvent();
+        $event->eventData = $data;
+        $event->update = $callback_query;
+        $this->_telegram_component->trigger(TelegramComponent::EVENT_CALLBACK_QUERY, $event);
         \Yii::info("Callback came to me:" . print_r(func_get_args(), 1));
 
-        return TRUE;
+        return true;
     }
 }

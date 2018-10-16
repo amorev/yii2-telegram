@@ -25,11 +25,13 @@ class TelegramMessageHandler
 
     private $_parse_mode = self::PARSE_HTML;
 
-    private $_background = TRUE;
+    private $_background = true;
 
     private $_telegram_component;
 
     private $_message_id_to_edit;
+
+    private $_reply_markup = null;
 
     /**
      * TelegramMessageHandler constructor.
@@ -37,7 +39,7 @@ class TelegramMessageHandler
      * @param $_receiver_chat_id
      * @param $_text
      */
-    public function __construct(TelegramComponent $telegramComponent, $_receiver_chat_id = NULL, $_text = NULL)
+    public function __construct(TelegramComponent $telegramComponent, $_receiver_chat_id = null, $_text = null)
     {
         $this->_text = $_text;
         $this->_receiver_chat_id = $_receiver_chat_id;
@@ -120,14 +122,14 @@ class TelegramMessageHandler
 
     public function foreground()
     {
-        $this->_background = FALSE;
+        $this->_background = false;
 
         return $this;
     }
 
     public function background()
     {
-        $this->_background = TRUE;
+        $this->_background = true;
 
         return $this;
     }
@@ -154,6 +156,13 @@ class TelegramMessageHandler
         return $this;
     }
 
+    public function setKeyboardMarkup($markup)
+    {
+        $this->_reply_markup = $markup;
+
+        return $this;
+    }
+
     /**
      * @return \Telegram\Bot\Objects\Message
      * @throws EmptyChatIdException
@@ -161,10 +170,15 @@ class TelegramMessageHandler
      */
     private function sendMessage(): \Telegram\Bot\Objects\Message
     {
-        return $this->_telegram_component->getTelegramClient()->sendMessage([
+        $params = [
             'chat_id'    => $this->getChatId(),
             'text'       => $this->_text,
             'parse_mode' => $this->_parse_mode,
-        ]);
+        ];
+        if ($this->_reply_markup !== null) {
+            $params['reply_markup'] = json_encode($this->_reply_markup);
+        }
+
+        return $this->_telegram_component->getTelegramClient()->sendMessage($params);
     }
 }
