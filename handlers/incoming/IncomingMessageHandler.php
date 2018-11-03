@@ -16,6 +16,7 @@ use yii\helpers\Json;
 use Zvinger\Telegram\components\TelegramComponent;
 use Zvinger\Telegram\handlers\events\TelegramCallbackEvent;
 use Zvinger\Telegram\handlers\message\TelegramMessageHandler;
+use Zvinger\Telegram\handlers\events\ChatJoinedEvent;
 
 class IncomingMessageHandler extends BaseObject
 {
@@ -29,7 +30,7 @@ class IncomingMessageHandler extends BaseObject
 
     public $methods = [
         self::TEXT_START => 'sendIdMessageReply',
-        self::TEXT_ID    => 'sendIdMessageReply',
+        self::TEXT_ID => 'sendIdMessageReply',
     ];
 
     public $handlers = [];
@@ -66,6 +67,9 @@ class IncomingMessageHandler extends BaseObject
         $channelPost = $update->get('channel_post');
         if ($channelPost) {
             return false;
+        }
+        if ($this->isChatJoinedUpdate($update)) {
+            $this->handleJoinedChat($update);
         }
 
 
@@ -114,13 +118,7 @@ class IncomingMessageHandler extends BaseObject
 
     protected function sendIdMessageReply(Update $update)
     {
-        $telegramId = $update->getMessage()->getChat()->getId();
-        $text = 'Добрый день! Я ' . $this->_telegram_component->telegramBotTitle . '. ' . PHP_EOL . "Текущий Telegram ID: " . PHP_EOL . "`" . $telegramId . '`';
-        $message = $this->_telegram_component->createMessageHandler($telegramId, $text)->setParseMode(TelegramMessageHandler::PARSE_MARKDOWN);
-
-        $result = $message->send();
-
-        return !empty($result);
+        return $this->_telegram_component->sendIdMessage($update->getMessage()->getChat()->getId());
     }
 
     /**
@@ -134,8 +132,38 @@ class IncomingMessageHandler extends BaseObject
         $event->eventData = $data;
         $event->update = $callback_query;
         $this->_telegram_component->trigger(TelegramComponent::EVENT_CALLBACK_QUERY, $event);
-        \Yii::info("Callback came to me:" . print_r(func_get_args(), 1));
+        \Yii::info("Callback came to me:".print_r(func_get_args(), 1));
 
         return true;
     }
+
+    /**
+     * @param $update
+     * @return bool
+     */
+    public function isChatJoinedUpdate($update): bool
+    {
+        $chatCreated = $update->getMessage()->get('group_chat_created');
+        $newMember = $update->getMessage()->get('new_chat_member');
+        if ($newMember) {
+            $newMemberId = $newMember->get('id');
+        } else {
+            $newMemberId = null;
+        }
+        $meJoined = $this->_telegram_component->getBotInfo()->id === $newMemberId;
+        $handleJoinedChat = $chatCreated || $meJoined;
+
+        return $handleJoinedChat;
+    }
+
+    public function handleJoinedChat(Update $update)
+    {
+        $event = new ChatJoinedEvent();
+        $event->chatId = $update->getMessage()->getChat()->getId();
+        $this->_telegram_component->trigger(TelegramComponent::EVENT_CHAT_JOINED, $event);
+
+        return true;
+    }
+
+
 }

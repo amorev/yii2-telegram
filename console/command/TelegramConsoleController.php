@@ -53,6 +53,11 @@ class TelegramConsoleController extends Controller
         }
     }
 
+    public function actionMe()
+    {
+        print_r($this->getTelegramComponent()->getBotInfo());
+    }
+
     /**
      * @throws \Zvinger\Telegram\exceptions\message\EmptyChatIdException
      * @throws \Zvinger\Telegram\exceptions\message\EmptyMessageTextException

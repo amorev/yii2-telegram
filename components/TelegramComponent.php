@@ -19,15 +19,18 @@ use Zvinger\Telegram\api\TelegramApiClient;
 use Zvinger\Telegram\api\TelegramApiConnector;
 use Zvinger\Telegram\console\command\TelegramConsoleController;
 use Zvinger\Telegram\exceptions\component\NoTokenProvidedException;
+use Zvinger\Telegram\handlers\events\ChatJoinedEvent;
 use Zvinger\Telegram\handlers\incoming\IncomingMessageHandler;
 use Zvinger\Telegram\handlers\message\TelegramMessageHandler;
 use Zvinger\Telegram\handlers\TelegramKeyStorage;
 use Zvinger\Telegram\handlers\user_connection\UserConnectionInfoHandler;
 use Zvinger\Telegram\interfaces\TelegramKeyStorageInterface;
+use Zvinger\Telegram\models\bot\TelegramBotInfo;
 
 class TelegramComponent extends Component implements BootstrapInterface
 {
     const EVENT_CALLBACK_QUERY = 'EVENT_CALLBACK_QUERY';
+    const EVENT_CHAT_JOINED = 'EVENT_CHAT_JOINED';
     private $_user_info_handler = null;
 
     /**
@@ -57,6 +60,20 @@ class TelegramComponent extends Component implements BootstrapInterface
 
     public $commands;
 
+    public $sendIdOnJoin = true;
+
+    public function init()
+    {
+        $this->on(
+            static::EVENT_CHAT_JOINED,
+            function (ChatJoinedEvent $event) {
+                if ($this->sendIdOnJoin) {
+                    $this->sendIdMessage($event->chatId);
+                }
+            }
+        );
+        parent::init();
+    }
 
     /**
      * @return UserConnectionInfoHandler
@@ -129,7 +146,7 @@ class TelegramComponent extends Component implements BootstrapInterface
     {
         if ($app instanceof \yii\console\Application) {
             $app->controllerMap[$this->getCommandId()] = [
-                'class'             => TelegramConsoleController::class,
+                'class' => TelegramConsoleController::class,
                 'telegramComponent' => $this,
             ];
         }
@@ -224,5 +241,43 @@ class TelegramComponent extends Component implements BootstrapInterface
         }
 
         return $this->_bot_api_url;
+    }
+
+    /**
+     * @var TelegramBotInfo
+     */
+    private $_bot_info;
+
+    public function getBotInfo(): TelegramBotInfo
+    {
+        if (empty($this->_bot_info)) {
+            $this->_bot_info = new TelegramBotInfo();
+            $data = $this->getTelegramClient()->getMe();
+            $this->_bot_info->first_name = $data->get('first_name');
+            $this->_bot_info->username = $data->get('username');
+            $this->_bot_info->id = $data->get('id');
+        }
+
+        return $this->_bot_info;
+    }
+
+    /**
+     * @param $telegramId
+     * @return bool
+     * @throws \Zvinger\Telegram\exceptions\component\NoTokenProvidedException
+     * @throws \Zvinger\Telegram\exceptions\message\EmptyChatIdException
+     * @throws \Zvinger\Telegram\exceptions\message\EmptyMessageTextException
+     */
+    public function sendIdMessage($telegramId): bool
+    {
+        $text = 'Добрый день! Я '.$this->getBotInfo(
+            )->first_name.'. '.PHP_EOL."Текущий Telegram ID: ".PHP_EOL."`".$telegramId.'`';
+        $message = $this->createMessageHandler($telegramId, $text)->setParseMode(
+            TelegramMessageHandler::PARSE_MARKDOWN
+        );
+
+        $result = $message->send();
+
+        return !empty($result);
     }
 }
