@@ -143,8 +143,12 @@ class IncomingMessageHandler extends BaseObject
      */
     public function isChatJoinedUpdate($update): bool
     {
-        $chatCreated = $update->getMessage()->get('group_chat_created');
-        $newMember = $update->getMessage()->get('new_chat_member');
+        $message = $update->getMessage();
+        if (empty($message)) {
+            return null;
+        }
+        $chatCreated = $message->get('group_chat_created');
+        $newMember = $message->get('new_chat_member');
         if ($newMember) {
             $newMemberId = $newMember->get('id');
         } else {
