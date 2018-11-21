@@ -145,7 +145,7 @@ class IncomingMessageHandler extends BaseObject
     {
         $message = $update->getMessage();
         if (empty($message)) {
-            return null;
+            return false;
         }
         $chatCreated = $message->get('group_chat_created');
         $newMember = $message->get('new_chat_member');
