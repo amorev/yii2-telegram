@@ -83,6 +83,7 @@ class IncomingMessageHandler extends BaseObject
             }
         }
         $handler = $this->getCommandHandler($command);
+        d($handler);
         if ($handler) {
             $handlingData = new HandlingData();
             $handlingData->messageText = $text;
@@ -103,14 +104,16 @@ class IncomingMessageHandler extends BaseObject
      */
     private function getCommandHandler(string $command)
     {
+        $className = null;
         if (!empty($this->handlers[$command])) {
-            $class = $this->handlers[$command];
-            if (class_exists($class)) {
-                $object = new $class($this->_telegram_component);
-                if ($object instanceof BaseUpdateHandler) {
-                    return $object;
-                }
-            }
+            $className = $this->handlers[$command];
+        } elseif ($this->_telegram_component->allMessageHandler) {
+            $className = $this->_telegram_component->allMessageHandler;
+        }
+        if ($className) {
+            $result = $this->createHandler($className);
+
+            return $result;
         }
 
         return null;
@@ -167,6 +170,23 @@ class IncomingMessageHandler extends BaseObject
         $this->_telegram_component->trigger(TelegramComponent::EVENT_CHAT_JOINED, $event);
 
         return true;
+    }
+
+    /**
+     * @param $class
+     * @return null|BaseUpdateHandler
+     */
+    private function createHandler($class)
+    {
+        $result = null;
+        if (class_exists($class)) {
+            $object = new $class($this->_telegram_component);
+            if ($object instanceof BaseUpdateHandler) {
+                $result = $object;
+            }
+        }
+
+        return $result;
     }
 
 

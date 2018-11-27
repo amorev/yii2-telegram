@@ -20,6 +20,7 @@ use Zvinger\Telegram\api\TelegramApiConnector;
 use Zvinger\Telegram\console\command\TelegramConsoleController;
 use Zvinger\Telegram\exceptions\component\NoTokenProvidedException;
 use Zvinger\Telegram\handlers\events\ChatJoinedEvent;
+use Zvinger\Telegram\handlers\incoming\BaseUpdateHandler;
 use Zvinger\Telegram\handlers\incoming\IncomingMessageHandler;
 use Zvinger\Telegram\handlers\message\TelegramMessageHandler;
 use Zvinger\Telegram\handlers\TelegramKeyStorage;
@@ -61,6 +62,11 @@ class TelegramComponent extends Component implements BootstrapInterface
     public $commands;
 
     public $sendIdOnJoin = true;
+
+    /**
+     * @var BaseUpdateHandler
+     */
+    public $allMessageHandler = null;
 
     public function init()
     {
