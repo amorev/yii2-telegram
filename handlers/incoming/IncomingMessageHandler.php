@@ -83,7 +83,6 @@ class IncomingMessageHandler extends BaseObject
             }
         }
         $handler = $this->getCommandHandler($command);
-        d($handler);
         if ($handler) {
             $handlingData = new HandlingData();
             $handlingData->messageText = $text;
