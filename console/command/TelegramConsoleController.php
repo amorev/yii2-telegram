@@ -38,7 +38,11 @@ class TelegramConsoleController extends Controller
             $updates = $telegramClient->getUpdates($params);
             foreach ($updates as $update) {
                 Console::stdout("Handling update #" . $update->getUpdateId() . PHP_EOL);
-                $telegramComponent->getIncomingMessageHandler()->workLongPollingUpdate($update);
+                try {
+                    $telegramComponent->getIncomingMessageHandler()->workLongPollingUpdate($update);
+                } catch (\Exception $e) {
+
+                }
                 $telegramComponent->setLastUpdateId($update->getUpdateId());
             }
         }
