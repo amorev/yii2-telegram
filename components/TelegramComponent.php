@@ -27,6 +27,7 @@ use Zvinger\Telegram\handlers\TelegramKeyStorage;
 use Zvinger\Telegram\handlers\user_connection\UserConnectionInfoHandler;
 use Zvinger\Telegram\interfaces\TelegramKeyStorageInterface;
 use Zvinger\Telegram\models\bot\TelegramBotInfo;
+use Zvinger\Telegram\modules\api\TelegramApiModule;
 
 class TelegramComponent extends Component implements BootstrapInterface
 {
@@ -155,6 +156,13 @@ class TelegramComponent extends Component implements BootstrapInterface
                 'class' => TelegramConsoleController::class,
                 'telegramComponent' => $this,
             ];
+        } elseif ($app instanceof \yii\web\Application) {
+            $app->setModule(
+                'telegram',
+                [
+                    'class' => TelegramApiModule::class,
+                ]
+            );
         }
     }
 
