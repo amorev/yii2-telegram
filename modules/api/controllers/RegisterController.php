@@ -30,6 +30,14 @@ class RegisterController extends BaseApiController
         return $array_merge;
     }
 
+    public function actionCurrentData()
+    {
+        return [
+            'username' => '@amorev',
+            'telegramId' => 51817529,
+        ];
+    }
+
     public function actionInitRegister()
     {
         $request = TelegramInitRegisterRequest::createRequest();
