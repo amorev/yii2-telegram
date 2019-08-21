@@ -19,6 +19,7 @@ use Zvinger\Telegram\api\TelegramApiClient;
 use Zvinger\Telegram\api\TelegramApiConnector;
 use Zvinger\Telegram\console\command\TelegramConsoleController;
 use Zvinger\Telegram\exceptions\component\NoTokenProvidedException;
+use Zvinger\Telegram\exceptions\connection\NotConnectionForUserException;
 use Zvinger\Telegram\handlers\events\ChatJoinedEvent;
 use Zvinger\Telegram\handlers\incoming\BaseUpdateHandler;
 use Zvinger\Telegram\handlers\incoming\IncomingMessageHandler;
@@ -146,7 +147,7 @@ class TelegramComponent extends Component implements BootstrapInterface
 
     /**
      * Bootstrap method to be called during application bootstrap stage.
-     * @param Application $app the application currently running
+     * @param Application $app the  application currently running
      * @throws InvalidConfigException
      */
     public function bootstrap($app)
@@ -293,5 +294,19 @@ class TelegramComponent extends Component implements BootstrapInterface
         $result = $message->send();
 
         return !empty($result);
+    }
+
+    public function sendMessageToUser($userId, $message)
+    {
+        try {
+            $telegramId = $this->getUserConnectionInfoHandler()->setUserId($userId)->getTelegramInfo()->telegramId;
+            return $this->message($telegramId, $message);
+        } catch (NotConnectionForUserException $e) {
+            $telegramId = null;
+        }
+        if (empty($telegramId)) {
+            return false;
+        }
+
     }
 }
