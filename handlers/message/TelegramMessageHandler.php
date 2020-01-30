@@ -105,6 +105,18 @@ class TelegramMessageHandler
     }
 
     /**
+     * @return \Telegram\Bot\Objects\Message
+     * @throws EmptyChatIdException
+     * @throws \Zvinger\Telegram\exceptions\component\NoTokenProvidedException
+     */
+    private function sendMessage(): \Telegram\Bot\Objects\Message
+    {
+        $params = $this->getBaseParams();
+
+        return $this->_telegram_component->getTelegramClient()->sendMessage($params);
+    }
+
+    /**
      * @param $messageId
      * @return mixed
      * @throws EmptyChatIdException
@@ -112,12 +124,10 @@ class TelegramMessageHandler
      */
     public function editMessageText($messageId)
     {
-        return $this->_telegram_component->getTelegramClient()->editMessageText([
-            'chat_id'    => $this->getChatId(),
-            'message_id' => $messageId,
-            'text'       => $this->_text,
-            'parse_mode' => $this->_parse_mode,
-        ]);
+        $params = $this->getBaseParams();
+        $params['message_id'] = $messageId;
+
+        return $this->_telegram_component->getTelegramClient()->editMessageText($params);
     }
 
     public function foreground()
@@ -164,21 +174,28 @@ class TelegramMessageHandler
     }
 
     /**
-     * @return \Telegram\Bot\Objects\Message
-     * @throws EmptyChatIdException
-     * @throws \Zvinger\Telegram\exceptions\component\NoTokenProvidedException
+     * @return null
      */
-    private function sendMessage(): \Telegram\Bot\Objects\Message
+    public function getText()
+    {
+        return $this->_text;
+    }
+
+    /**
+     * @return array
+     * @throws EmptyChatIdException
+     */
+    private function getBaseParams(): array
     {
         $params = [
-            'chat_id'    => $this->getChatId(),
-            'text'       => $this->_text,
+            'chat_id' => $this->getChatId(),
+            'text' => $this->_text,
             'parse_mode' => $this->_parse_mode,
         ];
         if ($this->_reply_markup !== null) {
             $params['reply_markup'] = json_encode($this->_reply_markup);
         }
 
-        return $this->_telegram_component->getTelegramClient()->sendMessage($params);
+        return $params;
     }
 }
